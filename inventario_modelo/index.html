@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartInventory</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh}
+        .header{background:linear-gradient(135deg,#1a237e,#283593,#3949ab);color:white;padding:12px 30px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;flex-wrap:wrap;gap:10px}
+        .logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:bold}
+        .logo-icon{font-size:30px}
+        .nav{display:flex;gap:5px;flex-wrap:wrap}
+        .nav-btn{background:rgba(255,255,255,0.1);color:white;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:14px;transition:.3s;display:flex;align-items:center;gap:6px}
+        .nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,0.25)}
+        .main-container{max-width:1400px;margin:0 auto;padding:25px}
+        .section{display:none;animation:fadeIn .4s}
+        .section.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+        .card{background:white;border-radius:15px;padding:25px;margin-bottom:20px;box-shadow:0 3px 15px rgba(0,0,0,0.06)}
+        .card h2{color:#1a237e;margin-bottom:15px;font-size:20px}
+        .hero{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:50px 40px;border-radius:20px;text-align:center;margin-bottom:25px}
+        .hero h1{font-size:36px;margin-bottom:12px}
+        .hero p{font-size:16px;opacity:.95;max-width:650px;margin:0 auto 25px}
+        .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:25px}
+        .feature{background:rgba(255,255,255,0.15);padding:22px;border-radius:12px;text-align:center}
+        .feature-icon{font-size:36px;margin-bottom:8px}
+        .feature h3{margin-bottom:6px;font-size:16px;color:white}
+        .feature p{font-size:13px;opacity:.9}
+        .upload-area{border:3px dashed #3949ab;border-radius:15px;padding:45px;text-align:center;cursor:pointer;transition:.3s;background:#f8f9ff}
+        .upload-area:hover{background:#e8eaff;border-color:#1a237e}
+        .upload-icon{font-size:55px;margin-bottom:12px}
+        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+        .kpi-card{padding:18px;border-radius:12px;color:white;text-align:center}
+        .kpi-card h3{font-size:32px;margin:4px 0;color:white}
+        .kpi-red{background:linear-gradient(135deg,#ff4444,#cc0000)}
+        .kpi-orange{background:linear-gradient(135deg,#ffaa00,#cc8800)}
+        .kpi-green{background:linear-gradient(135deg,#00C851,#009933)}
+        .kpi-blue{background:linear-gradient(135deg,#33b5e5,#0099cc)}
+        .filtros-container{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+        .filtros-container select,.filtros-container input{padding:10px 15px;border:2px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+        table{width:100%;border-collapse:collapse}
+        th{background:#1a237e;color:white;padding:11px;text-align:left;font-size:12px}
+        td{padding:9px 11px;border-bottom:1px solid #e0e0e0;font-size:13px}
+        tr:hover{background:#f5f5ff}
+        .badge{padding:4px 10px;border-radius:15px;font-size:11px;font-weight:bold;color:white}
+        .badge-red{background:#ff4444}.badge-orange{background:#ffaa00}.badge-green{background:#00C851}
+        .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+        .chart-box{background:white;border-radius:15px;padding:18px;box-shadow:0 3px 15px rgba(0,0,0,0.06)}
+        .chart-box h3{text-align:center;color:#1a237e;margin-bottom:12px}
+        .progress-bar{height:25px;border-radius:12px;overflow:hidden;display:flex;margin:8px 0}
+        .progress-red{background:#ff4444}.progress-orange{background:#ffaa00}.progress-green{background:#00C851}
+        .btn{padding:11px 22px;border:none;border-radius:22px;font-size:14px;cursor:pointer;font-weight:bold;transition:.3s}
+        .btn-primary{background:#3949ab;color:white}.btn-primary:hover{background:#1a237e}
+        .btn-success{background:#00C851;color:white}.btn-success:hover{background:#009933}
+        .btn-danger{background:#ff4444;color:white}.btn-danger:hover{background:#cc0000}
+        .btn-warning{background:#ffaa00;color:white}.btn-warning:hover{background:#cc8800}
+        .btn-info{background:#33b5e5;color:white}.btn-info:hover{background:#0099cc}
+        .btn-sm{padding:6px 14px;font-size:12px}
+        .hidden{display:none}
+        .tabla-scroll{overflow-x:auto;max-height:500px;overflow-y:auto}
+        .resultado-filtro{margin-top:10px;color:#666;font-size:13px}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:2000;justify-content:center;align-items:center}
+        .modal.active{display:flex}
+        .modal-content{background:white;border-radius:15px;padding:30px;width:90%;max-width:600px;max-height:80vh;overflow-y:auto}
+        .modal-content h2{color:#1a237e;margin-bottom:20px}
+        .form-group{margin-bottom:15px}
+        .form-group label{display:block;margin-bottom:5px;font-weight:bold;color:#333;font-size:14px}
+        .form-group input,.form-group select{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+        .toast{position:fixed;top:20px;right:20px;background:#00C851;color:white;padding:15px 25px;border-radius:10px;font-weight:bold;z-index:3000;display:none}
+        .toast.error{background:#ff4444}.toast.show{display:block;animation:slideIn .3s}
+        @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+        .familias-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+        .familia-mini{padding:14px;border-radius:10px;text-align:center;border-left:4px solid}
+        .footer{text-align:center;padding:18px;color:#999;font-size:12px}
+        .empty-state{text-align:center;padding:55px}
+        .empty-state .icon{font-size:70px}
+        .descarga-btns{display:flex;gap:8px;flex-wrap:wrap}
+        .bulk-bar{background:linear-gradient(135deg,#ff4444,#cc0000);color:white;padding:12px 18px;border-radius:10px;margin:10px 0;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;animation:fadeIn .3s}
+        .bulk-bar span{font-weight:bold}
+        .checkbox-custom{width:18px;height:18px;cursor:pointer;accent-color:#3949ab}
+        @media(max-width:768px){.features{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.filtros-container{flex-direction:column}.form-row{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo"><span class="logo-icon">📦</span>SmartInventory</div>
+    <div class="nav">
+        <button class="nav-btn active" onclick="mostrarSeccion('inicio')">🏠 Inicio</button>
+        <button class="nav-btn" onclick="mostrarSeccion('cargar')">📤 Cargar</button>
+        <button class="nav-btn" onclick="mostrarSeccion('dashboard')">📊 Dashboard</button>
+        <button class="nav-btn" onclick="mostrarSeccion('filtrar')">🔍 Filtrar</button>
+        <button class="nav-btn" onclick="mostrarSeccion('gestion')">✏️ Gestionar</button>
+        <button class="nav-btn" onclick="mostrarSeccion('graficos')">📈 Gráficos</button>
+    </div>
+</div>
+
+<div class="main-container">
+
+    <!-- INICIO -->
+    <div id="inicio" class="section active">
+        <div class="hero">
+            <h1>🧠 Inventario Inteligente con IA</h1>
+            <p>Optimiza tu inventario usando inteligencia artificial. Predice qué productos se agotarán, cuánto comprar y cuándo mover stock.</p>
+            <div class="features">
+                <div class="feature"><div class="feature-icon">🤖</div><h3>3 Modelos de IA</h3><p>LogisticRegression, RandomForest y GradientBoosting</p></div>
+                <div class="feature"><div class="feature-icon">🔮</div><h3>Predicción de Riesgo</h3><p>Probabilidad de agotamiento</p></div>
+                <div class="feature"><div class="feature-icon">📋</div><h3>Acciones Automáticas</h3><p>Cuánto mover y comprar</p></div>
+                <div class="feature"><div class="feature-icon">✏️</div><h3>Gestión de Productos</h3><p>Agrega, edita, elimina</p></div>
+                <div class="feature"><div class="feature-icon">📊</div><h3>Dashboard Visual</h3><p>KPIs y gráficos</p></div>
+                <div class="feature"><div class="feature-icon">📥</div><h3>Reportes</h3><p>Excel, PDF y CSV</p></div>
+            </div>
+        </div>
+        <div class="card" style="text-align:center">
+            <h2>¿Cómo funciona?</h2>
+            <div style="display:flex;gap:25px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+                <div><div style="font-size:45px">1️⃣</div><h3>Sube o Agrega</h3></div>
+                <div style="font-size:35px;align-self:center">→</div>
+                <div><div style="font-size:45px">2️⃣</div><h3>IA Analiza</h3></div>
+                <div style="font-size:35px;align-self:center">→</div>
+                <div><div style="font-size:45px">3️⃣</div><h3>Gestiona</h3></div>
+            </div>
+            <div style="margin-top:22px">
+                <button class="btn btn-primary" onclick="mostrarSeccion('dashboard')">📊 Dashboard</button>
+                <button class="btn btn-success" style="margin-left:10px" onclick="mostrarSeccion('gestion')">✏️ Gestionar</button>
+                <button class="btn btn-warning" style="margin-left:10px" onclick="mostrarSeccion('cargar')">📤 Subir Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARGAR -->
+    <div id="cargar" class="section">
+        <div class="card">
+            <h2>📤 Cargar Archivo de Inventario</h2>
+            <p style="color:#666;margin-bottom:12px">Sube tu archivo Excel. La IA entrenará 3 modelos y generará predicciones.</p>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <h3>Haz clic para seleccionar tu archivo</h3>
+                <p>.xlsx o .xls</p>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" hidden onchange="cargarArchivo()">
+            </div>
+            <div id="loaderCarga" class="hidden" style="text-align:center;padding:25px"><div style="font-size:38px">⏳</div><h3>Entrenando modelos...</h3></div>
+            <div id="resultadoCarga" class="hidden">
+                <div style="background:#e8f5e9;padding:14px;border-radius:10px;margin-top:14px">
+                    <h3 style="color:#2e7d32">✅ ¡Carga Exitosa!</h3>
+                    <p id="infoCarga" style="color:#666"></p>
+                </div>
+                <button class="btn btn-primary" style="margin-top:14px" onclick="mostrarSeccion('dashboard')">📊 Dashboard</button>
+                <button class="btn btn-success" style="margin-top:14px;margin-left:10px" onclick="mostrarSeccion('gestion')">✏️ Gestionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD / FILTRAR / GESTION / GRAFICOS -->
+    <div id="dashboard" class="section"><div id="dashboardContent"><div class="card empty-state"><div class="icon">📊</div><h2>No hay datos</h2><button class="btn btn-primary" style="margin-top:18px" onclick="mostrarSeccion('cargar')">📤 Cargar Datos</button></div></div></div>
+    <div id="filtrar" class="section"><div id="filtrarContent"><div class="card empty-state"><div class="icon">🔍</div><h2>No hay datos</h2><button class="btn btn-primary" style="margin-top:18px" onclick="mostrarSeccion('cargar')">📤 Cargar Datos</button></div></div></div>
+    <div id="gestion" class="section"><div id="gestionContent"><div class="card empty-state"><div class="icon">✏️</div><h2>No hay productos</h2><button class="btn btn-primary" style="margin-top:18px" onclick="mostrarSeccion('cargar')">📤 Cargar Datos</button></div></div></div>
+    <div id="graficos" class="section"><div id="graficosContent"><div class="card empty-state"><div class="icon">📈</div><h2>No hay datos</h2><button class="btn btn-primary" style="margin-top:18px" onclick="mostrarSeccion('cargar')">📤 Cargar Datos</button></div></div></div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modalProducto">
+    <div class="modal-content">
+        <h2 id="modalTitulo">Agregar Producto</h2>
+        <form onsubmit="guardarProducto(event)">
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="form-group"><label>Nombre *</label><input type="text" id="formNombreProducto" required></div>
+            <div class="form-group"><label>Familia</label><select id="formFamilia"><option>Lácteos</option><option>Granos</option><option>Panadería</option><option>Bebidas</option><option>Enlatados</option><option>Aseo</option><option>Limpieza</option><option>Otros</option></select></div>
+            <div class="form-row"><div class="form-group"><label>Stock Tienda</label><input type="number" id="formStockTienda" value="0"></div><div class="form-group"><label>Stock Bodega</label><input type="number" id="formStockBodega" value="0"></div></div>
+            <div class="form-row"><div class="form-group"><label>Ventas/Semana</label><input type="number" id="formVentas" value="0"></div><div class="form-group"><label>Stock Mínimo</label><input type="number" id="formStockMinimo" value="5"></div></div>
+            <div class="form-row"><div class="form-group"><label>Días sin Reposición</label><input type="number" id="formDiasSinRepos" value="0"></div><div class="form-group"><label>Días para Vencer</label><input type="number" id="formDiasVencer" value="30"></div></div>
+            <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="formSeAgota" style="width:auto"><span>¿Se agota pronto?</span></label></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-danger" onclick="cerrarModal()">Cancelar</button><button type="submit" class="btn btn-success" id="btnGuardar">💾 Guardar</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="footer">SmartInventory © 2026</div>
+
+<script>
+let datosCompletos = null;
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[t] || t);
+}
+
+function mostrarSeccion(s) {
+    document.querySelectorAll('.section').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+    document.getElementById(s).classList.add('active');
+    const idx = {inicio:0,cargar:1,dashboard:2,filtrar:3,gestion:4,graficos:5};
+    const btns = document.querySelectorAll('.nav-btn');
+    if(idx[s]!==undefined && btns[idx[s]]) btns[idx[s]].classList.add('active');
+    if(s==='dashboard'&&datosCompletos) renderDashboard();
+    if(s==='filtrar'&&datosCompletos) renderFiltros();
+    if(s==='gestion') renderGestion();
+    if(s==='graficos'&&datosCompletos) renderGraficos();
+}
+
+function mostrarToast(m,e){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(e?' error':'');setTimeout(()=>t.classList.remove('show'),3000)}
+
+async function cargarArchivo(){
+    const f=document.getElementById('fileInput').files[0];
+    if(!f)return;
+    document.getElementById('loaderCarga').classList.remove('hidden');
+    document.getElementById('resultadoCarga').classList.add('hidden');
+    const fd=new FormData();fd.append('archivo',f);
+    try{
+        const r=await fetch('/entrenar',{method:'POST',body:fd});
+        const d=await r.json();
+        if(d.error){document.getElementById('loaderCarga').classList.add('hidden');mostrarToast(d.error,true);return}
+        datosCompletos=d;
+        document.getElementById('loaderCarga').classList.add('hidden');
+        document.getElementById('resultadoCarga').classList.remove('hidden');
+        document.getElementById('infoCarga').innerHTML=`Modelo: <strong>${d.modelo_seleccionado||'IA'}</strong> | ${d.total_productos} productos`;
+        mostrarToast('✅ Datos cargados');
+    }catch(e){document.getElementById('loaderCarga').classList.add('hidden');mostrarToast('❌ Error',true)}
+}
+
+function renderDashboard(){
+    const d=datosCompletos;
+    if(!d||!d.resumen||d.resumen.total===0){
+        document.getElementById('dashboardContent').innerHTML=`<div class="card empty-state"><div class="icon">📊</div><h2>No hay datos</h2><button class="btn btn-primary" style="margin-top:18px" onclick="mostrarSeccion('cargar')">📤 Cargar Datos</button></div>`;
+        return;
+    }
+    let h=`
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-red"><p>🔴 CRÍTICOS</p><h3>${d.resumen.criticos}</h3></div>
+            <div class="kpi-card kpi-orange"><p>🟡 ALERTA</p><h3>${d.resumen.alertas}</h3></div>
+            <div class="kpi-card kpi-green"><p>🟢 SIN RIESGO</p><h3>${d.resumen.sin_riesgo}</h3></div>
+            <div class="kpi-card kpi-blue"><p>📦 TOTAL</p><h3>${d.resumen.total}</h3></div>
+        </div>
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+                <h2>📋 Productos Prioritarios</h2>
+                <div class="descarga-btns">
+                    <button class="btn btn-success btn-sm" onclick="descargarReporte('excel')">📥 Excel</button>
+                    <button class="btn btn-danger btn-sm" onclick="descargarReporte('pdf')">📥 PDF</button>
+                    <button class="btn btn-info btn-sm" onclick="descargarReporte('csv')">📥 CSV</button>
+                </div>
+            </div>
+            <div class="tabla-scroll"><table><thead><tr><th>Producto</th><th>Familia</th><th>Tienda</th><th>Bodega</th><th>Días</th><th>Riesgo</th><th>Mover</th><th>Comprar</th><th>Vence</th></tr></thead><tbody>`;
+    (d.top_prioridad||[]).forEach(p=>{
+        let b=p.riesgo>70?'badge-red':p.riesgo>40?'badge-orange':'badge-green';
+        h+=`<tr><td><strong>${p.producto}</strong></td><td>${p.familia}</td><td>${p.stock_tienda}</td><td>${p.stock_bodega}</td><td>${Math.round(p.dias)}</td><td><span class="badge ${b}">${Math.round(p.riesgo)}%</span></td><td>${Math.round(p.mover)}</td><td>${Math.round(p.comprar)}</td><td>${p.dias_para_vencer} d</td></tr>`;
+    });
+    h+='</tbody></table></div></div>';
+    const t=d.resumen.total;
+    h+=`<div class="card"><h2>📊 Estado General</h2><div class="progress-bar"><div class="progress-green" style="width:${d.resumen.sin_riesgo/t*100}%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px">${d.resumen.sin_riesgo/t*100>10?Math.round(d.resumen.sin_riesgo/t*100)+'% Sin Riesgo':''}</div><div class="progress-orange" style="width:${d.resumen.alertas/t*100}%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px">${d.resumen.alertas/t*100>10?Math.round(d.resumen.alertas/t*100)+'% Alerta':''}</div><div class="progress-red" style="width:${d.resumen.criticos/t*100}%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px">${d.resumen.criticos/t*100>10?Math.round(d.resumen.criticos/t*100)+'% Crítico':''}</div></div></div>`;
+    document.getElementById('dashboardContent').innerHTML=h;
+}
+
+function renderFiltros(){
+    const d=datosCompletos;
+    if(!d||!d.todos||d.todos.length===0){
+        document.getElementById('filtrarContent').innerHTML=`<div class="card empty-state"><div class="icon">🔍</div><h2>No hay datos</h2></div>`;
+        return;
+    }
+    let h=`<div class="card"><h2>🔍 Filtrar Productos</h2><div class="filtros-container"><select id="filtroFamilia" onchange="aplicarFiltros()"><option value="todas">Todas las familias</option>${(d.lista_familias||[]).map(f=>`<option value="${f}">${f}</option>`).join('')}</select><select id="filtroEstado" onchange="aplicarFiltros()"><option value="todos">Todos los estados</option><option value="critico">🔴 Crítico</option><option value="alerta">🟡 Alerta</option><option value="sin_riesgo">🟢 Sin Riesgo</option></select><select id="filtroVencimiento" onchange="aplicarFiltros()"><option value="todos">Todo vencimiento</option><option value="7">≤7 días</option><option value="15">≤15 días</option><option value="30">≤30 días</option><option value="30+">>30 días</option></select><input type="text" id="filtroBuscar" placeholder="🔍 Buscar..." onkeyup="aplicarFiltros()"><button class="btn btn-danger btn-sm" onclick="limpiarFiltros()">✕</button></div><p class="resultado-filtro" id="resultadoFiltro"></p><div class="tabla-scroll"><table><thead><tr><th>Producto</th><th>Familia</th><th>Tienda</th><th>Bodega</th><th>Días</th><th>Riesgo</th><th>Estado</th><th>Mover</th><th>Comprar</th><th>Vence</th></tr></thead><tbody id="tablaFiltrada"></tbody></table></div></div>`;
+    document.getElementById('filtrarContent').innerHTML=h;
+    aplicarFiltros();
+}
+
+function aplicarFiltros(){
+    if(!datosCompletos||!datosCompletos.todos)return;
+    const todos=datosCompletos.todos;
+    const fam=document.getElementById('filtroFamilia')?.value||'todas';
+    const est=document.getElementById('filtroEstado')?.value||'todos';
+    const ven=document.getElementById('filtroVencimiento')?.value||'todos';
+    const bus=(document.getElementById('filtroBuscar')?.value||'').toLowerCase();
+    let f=todos;
+    if(fam!=='todas')f=f.filter(p=>p.familia===fam);
+    if(est==='critico')f=f.filter(p=>p.riesgo>70);
+    else if(est==='alerta')f=f.filter(p=>p.riesgo>40&&p.riesgo<=70);
+    else if(est==='sin_riesgo')f=f.filter(p=>p.riesgo<=40);
+    if(ven==='7')f=f.filter(p=>p.dias_para_vencer<=7);
+    else if(ven==='15')f=f.filter(p=>p.dias_para_vencer<=15);
+    else if(ven==='30')f=f.filter(p=>p.dias_para_vencer<=30);
+    else if(ven==='30+')f=f.filter(p=>p.dias_para_vencer>30);
+    if(bus)f=f.filter(p=>p.producto.toLowerCase().includes(bus));
+    document.getElementById('resultadoFiltro').textContent=`Mostrando ${f.length} de ${todos.length}`;
+    document.getElementById('tablaFiltrada').innerHTML=f.map(p=>{let b=p.riesgo>70?'badge-red':p.riesgo>40?'badge-orange':'badge-green';return`<tr><td><strong>${p.producto}</strong></td><td>${p.familia}</td><td>${p.stock_tienda}</td><td>${p.stock_bodega}</td><td>${Math.round(p.dias)}</td><td><span class="badge ${b}">${Math.round(p.riesgo)}%</span></td><td>${p.estado}</td><td>${Math.round(p.mover)}</td><td>${Math.round(p.comprar)}</td><td>${p.dias_para_vencer} d</td></tr>`}).join('');
+}
+
+function limpiarFiltros(){
+    document.getElementById('filtroFamilia').value='todas';
+    document.getElementById('filtroEstado').value='todos';
+    document.getElementById('filtroVencimiento').value='todos';
+    document.getElementById('filtroBuscar').value='';
+    aplicarFiltros();
+}
+
+function renderGestion(){
+    const todos=datosCompletos&&datosCompletos.todos?datosCompletos.todos:[];
+    let h=`<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <h2>✏️ Gestión de Productos</h2>
+            <div style="display:flex;gap:8px">
+                <input type="text" id="buscarGestion" placeholder="🔍 Buscar..." onkeyup="filtrarGestion()" style="padding:8px 14px;border:2px solid #ddd;border-radius:8px;font-size:13px">
+                <button class="btn btn-success" onclick="abrirModalAgregar()">➕ Agregar</button>
+            </div>
+        </div>
+        <div class="bulk-bar" id="bulkBar">
+            <span id="bulkCount">0 seleccionados</span>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-sm" style="background:white;color:#cc0000;font-weight:bold" onclick="eliminarSeleccionados()">🗑️ Eliminar</button>
+                <button class="btn btn-sm" style="background:rgba(255,255,255,0.3);color:white" onclick="deseleccionarTodos()">✕ Cancelar</button>
+            </div>
+        </div>
+        <p class="resultado-filtro"><strong>Total:</strong> ${todos.length} productos</p>
+        <div class="tabla-scroll"><table>
+            <thead><tr>
+                <th style="width:35px"><input type="checkbox" id="checkAll" class="checkbox-custom" onchange="toggleSeleccionarTodos()" title="Seleccionar todos"></th>
+                <th>#</th><th>Producto</th><th>Familia</th><th>Tienda</th><th>Bodega</th><th>Días</th><th>Riesgo</th><th>Estado</th><th>Mover</th><th>Comprar</th><th>Vence</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="tablaGestion">`;
+    if(!todos.length) {
+        h+=`<tr><td colspan="13" style="text-align:center;padding:20px;color:#666">No hay productos. ¡Agrega uno!</td></tr>`;
+    } else {
+        todos.forEach((p,i)=>{
+            let b=p.riesgo>70?'badge-red':p.riesgo>40?'badge-orange':'badge-green';
+            h+=`<tr data-nombre="${escapeHTML(p.producto).toLowerCase()}" data-index="${i}">
+                <td><input type="checkbox" class="check-producto checkbox-custom" value="${i}" onchange="actualizarBulkBar()"></td>
+                <td>${i+1}</td>
+                <td><strong>${escapeHTML(p.producto)}</strong></td>
+                <td>${escapeHTML(p.familia)}</td>
+                <td>${p.stock_tienda}</td><td>${p.stock_bodega}</td>
+                <td>${Math.round(p.dias)}</td>
+                <td><span class="badge ${b}">${Math.round(p.riesgo)}%</span></td>
+                <td>${p.estado}</td>
+                <td>${Math.round(p.mover)}</td><td>${Math.round(p.comprar)}</td>
+                <td>${p.dias_para_vencer} d</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="abrirModalEditar(${i})" title="Editar">✏️</button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${i})" title="Eliminar">🗑️</button>
+                </td>
+            </tr>`;
+        });
+    }
+    h+='</tbody></table></div></div>';
+    document.getElementById('gestionContent').innerHTML=h;
+}
+
+function filtrarGestion() {
+    const buscar = (document.getElementById('buscarGestion')?.value || '').toLowerCase();
+    document.querySelectorAll('#tablaGestion tr[data-nombre]').forEach(tr => {
+        const nombre = tr.dataset.nombre || '';
+        tr.style.display = nombre.includes(buscar) ? '' : 'none';
+    });
+    document.getElementById('checkAll').checked = false;
+    actualizarBulkBar();
+}
+
+function toggleSeleccionarTodos() {
+    const checked = document.getElementById('checkAll').checked;
+    document.querySelectorAll('.check-producto').forEach(cb => {
+        const tr = cb.closest('tr');
+        if (tr && tr.style.display !== 'none') {
+            cb.checked = checked;
+        }
+    });
+    actualizarBulkBar();
+}
+
+function deseleccionarTodos() {
+    document.getElementById('checkAll').checked = false;
+    document.querySelectorAll('.check-producto').forEach(cb => cb.checked = false);
+    actualizarBulkBar();
+}
+
+function actualizarBulkBar() {
+    const seleccionados = document.querySelectorAll('.check-producto:checked');
+    const bar = document.getElementById('bulkBar');
+    if (seleccionados.length > 0) {
+        bar.style.display = 'flex';
+        document.getElementById('bulkCount').textContent = 
+            `${seleccionados.length} producto${seleccionados.length > 1 ? 's' : ''} seleccionado${seleccionados.length > 1 ? 's' : ''}`;
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+async function eliminarSeleccionados() {
+    const checks = document.querySelectorAll('.check-producto:checked');
+    if (checks.length === 0) {
+        mostrarToast('⚠️ Selecciona al menos un producto', true);
+        return;
+    }
+    const nombres = Array.from(checks).map(cb => {
+        const tr = cb.closest('tr');
+        return tr ? tr.querySelector('td:nth-child(3) strong').textContent : '';
+    });
+    let mensaje = checks.length === 1 ? `¿Eliminar "${nombres[0]}"?` : `¿Eliminar ${checks.length} productos?\n\n• ${nombres.slice(0, 5).join('\n• ')}${nombres.length > 5 ? '\n...y ' + (nombres.length - 5) + ' más' : ''}`;
+    if (!confirm(mensaje)) return;
+    const indices = Array.from(checks).map(cb => parseInt(cb.value));
+    try {
+        const formData = new FormData();
+        indices.forEach(i => formData.append('indices', i));
+        const r = await fetch('/producto/eliminar-varios', { method: 'POST', body: formData });
+        const d = await r.json();
+        if (d.error) { mostrarToast(d.error, true); return; }
+        datosCompletos = d;
+        renderGestion();
+        mostrarToast(d.mensaje || `✅ ${indices.length} producto(s) eliminado(s)`);
+    } catch(e) { mostrarToast('❌ Error al eliminar', true); }
+}
+
+function abrirModalAgregar(){
+    document.getElementById('modalTitulo').textContent='➕ Agregar Producto';
+    document.getElementById('editIndex').value='-1';
+    document.getElementById('formNombreProducto').value='';
+    document.getElementById('formFamilia').value='Otros';
+    document.getElementById('formStockTienda').value='0';
+    document.getElementById('formStockBodega').value='0';
+    document.getElementById('formVentas').value='0';
+    document.getElementById('formStockMinimo').value='5';
+    document.getElementById('formDiasSinRepos').value='0';
+    document.getElementById('formDiasVencer').value='30';
+    document.getElementById('formSeAgota').checked=false;
+    document.getElementById('btnGuardar').disabled=false;
+    document.getElementById('btnGuardar').textContent='💾 Guardar';
+    document.getElementById('modalProducto').classList.add('active');
+}
+
+function abrirModalEditar(i){
+    const p=datosCompletos.todos[i];
+    document.getElementById('modalTitulo').textContent='✏️ Editar Producto';
+    document.getElementById('editIndex').value=i;
+    document.getElementById('formNombreProducto').value=p.producto;
+    document.getElementById('formFamilia').value=p.familia;
+    document.getElementById('formStockTienda').value=p.stock_tienda;
+    document.getElementById('formStockBodega').value=p.stock_bodega;
+    document.getElementById('formVentas').value=p.ventas_semana||0;
+    document.getElementById('formStockMinimo').value=p.stock_minimo||5;
+    document.getElementById('formDiasSinRepos').value=p.dias_sin_repos||0;
+    document.getElementById('formDiasVencer').value=p.dias_para_vencer||30;
+    document.getElementById('formSeAgota').checked=(p.se_agota_pronto==1);
+    document.getElementById('btnGuardar').disabled=false;
+    document.getElementById('btnGuardar').textContent='💾 Guardar';
+    document.getElementById('modalProducto').classList.add('active');
+}
+
+function cerrarModal(){document.getElementById('modalProducto').classList.remove('active')}
+
+async function guardarProducto(e){
+    e.preventDefault();
+    const btn=document.getElementById('btnGuardar');
+    if(btn.disabled)return;
+    btn.disabled=true;btn.textContent='⏳...';
+    const i=parseInt(document.getElementById('editIndex').value);
+    const fd=new FormData();
+    fd.append('producto',document.getElementById('formNombreProducto').value.trim());
+    fd.append('familia',document.getElementById('formFamilia').value);
+    fd.append('stock_tienda',Math.max(0,parseInt(document.getElementById('formStockTienda').value)||0));
+    fd.append('stock_bodega',Math.max(0,parseInt(document.getElementById('formStockBodega').value)||0));
+    fd.append('ventas_semana',Math.max(0,parseInt(document.getElementById('formVentas').value)||0));
+    fd.append('stock_minimo',Math.max(0,parseInt(document.getElementById('formStockMinimo').value)||0));
+    fd.append('dias_sin_repos',Math.max(0,parseInt(document.getElementById('formDiasSinRepos').value)||0));
+    fd.append('dias_para_vencer',Math.max(0,parseInt(document.getElementById('formDiasVencer').value)||0));
+    fd.append('se_agota_pronto',document.getElementById('formSeAgota').checked?'1':'0');
+    try{
+        const url=i>=0?`/producto/editar/${i}`:'/producto/agregar';
+        const method=i>=0?'PUT':'POST';
+        const r=await fetch(url,{method,body:fd});
+        const d=await r.json();
+        if(d.error){mostrarToast(d.error,true);btn.disabled=false;btn.textContent='💾 Guardar';return}
+        datosCompletos=d;
+        cerrarModal();renderGestion();mostrarToast(d.mensaje||'✅ Guardado');
+    }catch(ex){mostrarToast('❌ Error',true);btn.disabled=false;btn.textContent='💾 Guardar'}
+}
+
+async function eliminarProducto(i){
+    const p=datosCompletos.todos[i];
+    if(!confirm(`¿Eliminar "${p.producto}"?`))return;
+    try{
+        const r=await fetch(`/producto/eliminar/${i}`,{method:'DELETE'});
+        const d=await r.json();
+        datosCompletos=d;
+        renderGestion();mostrarToast(d.mensaje);
+    }catch(ex){mostrarToast('❌ Error',true)}
+}
+
+function renderGraficos(){
+    const d=datosCompletos;
+    if(!d||!d.resumen||d.resumen.total===0){
+        document.getElementById('graficosContent').innerHTML=`<div class="card empty-state"><div class="icon">📈</div><h2>No hay datos</h2></div>`;
+        return;
+    }
+    let h=`<div class="charts-grid"><div class="chart-box"><h3>📊 Estado del Inventario</h3><div style="text-align:center;padding:20px"><canvas id="pieChart" width="280" height="280"></canvas></div><div style="display:flex;justify-content:center;gap:15px;margin-top:8px;font-size:13px"><span>🔴 Críticos: ${d.resumen.criticos}</span><span>🟡 Alerta: ${d.resumen.alertas}</span><span>🟢 Sin Riesgo: ${d.resumen.sin_riesgo}</span></div></div><div class="chart-box"><h3>🔝 Top 5 - Mayor Riesgo</h3><div style="padding:10px">`;
+    (d.graficos.top_riesgo||[]).forEach(p=>{let c=p.riesgo>70?'#ff4444':'#ffaa00';h+=`<div style="margin-bottom:15px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>${p.producto}</strong><span>${Math.round(p.riesgo)}%</span></div><div style="background:#e0e0e0;border-radius:8px;height:22px"><div style="background:${c};width:${p.riesgo}%;height:100%;border-radius:8px"></div></div></div>`});
+    h+='</div></div></div><div class="chart-box" style="margin-top:18px"><h3>📈 Riesgo Promedio por Familia</h3><div style="padding:10px">';
+    for(const[n,r]of Object.entries(d.graficos.por_familia||{})){let c=r>50?'#ff4444':r>30?'#ffaa00':'#00C851';h+=`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>${n}</strong><span>${Math.round(r)}%</span></div><div style="background:#e0e0e0;border-radius:8px;height:22px"><div style="background:${c};width:${r}%;height:100%;border-radius:8px"></div></div></div>`}
+    h+='</div></div><div class="chart-box" style="margin-top:18px"><h3>📅 Productos por Vencimiento</h3><div style="padding:10px">';
+    const v=d.vencimiento;
+    [{label:'≤7 días',valor:v.proximo_7_dias,color:'#ff4444'},{label:'8-15 días',valor:v.proximo_15_dias,color:'#ffaa00'},{label:'16-30 días',valor:v.proximo_30_dias,color:'#33b5e5'},{label:'>30 días',valor:v.mas_30_dias,color:'#00C851'}].forEach(x=>{h+=`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>${x.label}</strong><span>${x.valor} productos</span></div><div style="background:#e0e0e0;border-radius:8px;height:22px"><div style="background:${x.color};width:${x.valor/d.resumen.total*100}%;height:100%;border-radius:8px"></div></div></div>`});
+    h+='</div></div>';
+    document.getElementById('graficosContent').innerHTML=h;
+    setTimeout(dibujarPastel,100);
+}
+
+function dibujarPastel(){
+    const c=document.getElementById('pieChart');if(!c)return;
+    const ctx=c.getContext('2d'),d=datosCompletos,t=d.resumen.total;
+    const datos=[{v:d.resumen.criticos,co:'#ff4444'},{v:d.resumen.alertas,co:'#ffaa00'},{v:d.resumen.sin_riesgo,co:'#00C851'}];
+    let ini=-Math.PI/2,cx=c.width/2,cy=c.height/2,r=120;
+    datos.forEach(x=>{const a=(x.v/t)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ini,ini+a);ctx.fillStyle=x.co;ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();ini+=a});
+    ctx.beginPath();ctx.arc(cx,cy,60,0,2*Math.PI);ctx.fillStyle='white';ctx.fill();ctx.fillStyle='#333';ctx.font='bold 28px Segoe UI';ctx.textAlign='center';ctx.fillText(t,cx,cy+8);
+}
+
+async function descargarReporte(formato){
+    const urls={excel:'/descargar-excel',pdf:'/descargar-pdf',csv:'/descargar-csv'};
+    const exts={excel:'xlsx',pdf:'pdf',csv:'csv'};
+    try{
+        const r=await fetch(urls[formato],{method:'POST'});
+        const ct=r.headers.get('content-type');
+        if(ct&&ct.includes('application/json')){const d=await r.json();if(d.error){mostrarToast(d.error,true);if(formato==='pdf'){mostrarToast('Descargando Excel...');descargarReporte('excel')}return}}
+        const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`inventario.${exts[formato]}`;a.click();mostrarToast(`✅ ${formato.toUpperCase()} descargado`);
+    }catch(e){mostrarToast('❌ Error',true)}
+}
+
+document.addEventListener('DOMContentLoaded',async()=>{
+    try{
+        const r=await fetch('/productos');
+        const d=await r.json();
+        if(!d.error&&d.todos&&d.todos.length>0){
+            datosCompletos=d;
+            mostrarSeccion('dashboard');
+            mostrarToast('✅ Datos cargados automáticamente');
+        } else if(d.error) {
+            console.log("Sin datos guardados");
+        }
+    }catch(e){
+        console.log("Error cargando datos iniciales");
+    }
+});
+</script>
+</body>
+</html>
